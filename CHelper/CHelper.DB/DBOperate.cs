@@ -10,21 +10,24 @@ using System.Threading.Tasks;
 
 namespace CHelper.DB
 {
-    class DBOperate
+    public class DBOperate
     {
         public string ConnectionStringName;
         public string GetConnectionString(string name)
         {
             return ConfigurationManager.ConnectionStrings[name].ConnectionString;
         }
-        public void GetData_Page()
+        public DataTable GetData_Page(int pageSize,int pageIndex, string tableName, out int TotalNum)
         {
             Database db = DatabaseFactory.CreateDatabase(GetConnectionString("SQL_String"));
-            DbCommand com = db.GetStoredProcCommand("AddUserInfo");
-            db.AddInParameter(com, "@UserName", DbType.String, "zgshi");
-            db.AddInParameter(com, "@Pwd", DbType.String, "123456");
-            db.ExecuteNonQuery(com);
-
+            DbCommand com = db.GetStoredProcCommand("DBPager");
+            db.AddInParameter(com, "@pageSize", DbType.Int32, pageSize);
+            db.AddInParameter(com, "@pageIndex", DbType.Int32, pageIndex);
+            db.AddInParameter(com, "@tableName", DbType.String, tableName);
+            db.AddOutParameter(com, "@TotalNum", DbType.Int32,4);
+            DataTable dt=db.ExecuteDataSet(com).Tables[0];
+            TotalNum = Convert.ToInt32(com.Parameters["@TotalNum"].Value);
+            return dt;
         }
     }
 }
